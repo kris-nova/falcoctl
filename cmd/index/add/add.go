@@ -38,11 +38,11 @@ func NewIndexAddCmd(ctx context.Context, opt *options.Common) *cobra.Command {
 	}
 
 	cmd := &cobra.Command{
-		Use:                   "add [NAME] [URL] [BACKEND] [flags]",
+		Use:                   "add [NAME] [URL] [BACKEND] [TOKEN] [flags]",
 		DisableFlagsInUseLine: true,
 		Short:                 "Add an index to the local falcoctl configuration",
-		Long:                  "Add an index to the local falcoctl configuration. Indexes are used to perform search operations for artifacts",
-		Args:                  cobra.RangeArgs(2, 3),
+		Long:                  "Add an index to the local falcoctl configuration. Indexes are used to perform search operations for artifacts\nIf you need authentication for using private index. You have to use token ( base64 encode \"HeaderName:Token\" )",
+		Args:                  cobra.RangeArgs(2, 4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return o.RunIndexAdd(ctx, args)
 		},
@@ -59,8 +59,12 @@ func (o *IndexAddOptions) RunIndexAdd(ctx context.Context, args []string) error 
 	name := args[0]
 	url := args[1]
 	backend := ""
-	if len(args) > 2 {
+	token := ""
+	if len(args) == 3 {
 		backend = args[2]
+	} else if len(args) == 4 {
+		backend = args[2]
+		token = args[3]
 	}
 
 	logger.Debug("Creating in-memory cache using", logger.Args("indexes file", config.IndexesFile, "indexes directory", config.IndexesDir))
@@ -71,7 +75,7 @@ func (o *IndexAddOptions) RunIndexAdd(ctx context.Context, args []string) error 
 
 	logger.Info("Adding index", logger.Args("name", name, "path", url))
 
-	if err = indexCache.Add(ctx, name, backend, url); err != nil {
+	if err = indexCache.Add(ctx, name, backend, url, token); err != nil {
 		return fmt.Errorf("unable to add index: %w", err)
 	}
 

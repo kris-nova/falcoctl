@@ -27,7 +27,7 @@ import (
 
 //nolint:lll // no need to check for line length.
 var indexAddUsage = `Usage:
-falcoctl index add [NAME] [URL] [BACKEND] [flags]
+falcoctl index add [NAME] [URL] [BACKEND] [TOKEN] [flags]
 
 Flags:
 -h, --help   help for add
@@ -42,7 +42,7 @@ Global Flags:
 var indexAddHelp = `Add an index to the local falcoctl configuration. Indexes are used to perform search operations for artifacts
 
 Usage:
-  falcoctl index add [NAME] [URL] [BACKEND] [flags]
+  falcoctl index add [NAME] [URL] [BACKEND] [TOKEN] [flags]
 
 Flags:
   -h, --help   help for add
@@ -97,7 +97,7 @@ var indexAddTests = Describe("add", func() {
 			BeforeEach(func() {
 				args = []string{indexCmd, addCmd, "--config", configFile, indexName}
 			})
-			addAssertFailedBehavior(indexAddUsage, "ERROR accepts between 2 and 3 arg(s), received 1")
+			addAssertFailedBehavior(indexAddUsage, "ERROR accepts between 2 and 4 arg(s), received 1")
 		})
 
 		When("with invalid URL", func() {

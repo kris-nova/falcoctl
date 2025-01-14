@@ -17,9 +17,11 @@ package http
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/falcosecurity/falcoctl/pkg/index/config"
 )
@@ -29,6 +31,15 @@ func Fetch(ctx context.Context, conf *config.Entry) ([]byte, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", conf.URL, http.NoBody)
 	if err != nil {
 		return nil, fmt.Errorf("cannot fetch index: %w", err)
+	}
+
+	if conf.Token != "" {
+		tokenString, err := base64.StdEncoding.DecodeString(conf.Token)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse index token: %w", err)
+		}
+		indexToken := strings.Split(string(tokenString), ":")
+		req.Header.Add(indexToken[0], indexToken[1])
 	}
 
 	client := &http.Client{}

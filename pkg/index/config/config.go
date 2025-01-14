@@ -33,6 +33,7 @@ type Entry struct {
 	UpdatedTimestamp string `yaml:"updated_timestamp"`
 	URL              string `yaml:"url"`
 	Backend          string `yaml:"backend"`
+	Token            string `yaml:"token"`
 	// TODO: add support for HTTP and other backend configs.
 	// HTTP             http.BackendConfig `yaml:"http"`
 }

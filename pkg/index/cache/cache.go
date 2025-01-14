@@ -134,7 +134,7 @@ func NewFromConfig(ctx context.Context, indexFile, indexesDir string, indexes []
 // Add adds a new index file to the cache. If the index file already exists in the cache it
 // does nothing. On the other hand, it fetches the index file using the provided URL and adds
 // it to the in memory cache. It does not write it to the filesystem. It is idempotent.
-func (c *Cache) Add(ctx context.Context, name, backend, url string) error {
+func (c *Cache) Add(ctx context.Context, name, backend, url, token string) error {
 	var remoteIndex *index.Index
 	var err error
 
@@ -149,6 +149,7 @@ func (c *Cache) Add(ctx context.Context, name, backend, url string) error {
 		Name:    name,
 		URL:     url,
 		Backend: backend,
+		Token:   token,
 	}
 
 	// If the index is not locally cached we fetch it using the provided url.
@@ -164,6 +165,7 @@ func (c *Cache) Add(ctx context.Context, name, backend, url string) error {
 		UpdatedTimestamp: ts,
 		URL:              url,
 		Backend:          backend,
+		Token:            token,
 	}
 	c.localIndexes.Add(entry)
 

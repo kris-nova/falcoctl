@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-// Copyright (C) 2024 The Falco Authors
+// Copyright (C) 2025 The Falco Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package follower
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/pterm/pterm"
@@ -131,6 +132,173 @@ func TestCheckRequirements(t *testing.T) {
 				assert.Error(t, err)
 			} else {
 				assert.NoError(t, err)
+			}
+		})
+	}
+}
+
+func TestMoveFiles(t *testing.T) {
+	type testFile struct {
+		path    string
+		content string
+		replace bool
+	}
+
+	tests := []struct {
+		name     string
+		files    []testFile
+		existing []testFile
+	}{
+		{
+			name: "basic file at root",
+			files: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+				},
+			},
+		},
+		{
+			name: "file in subdirectory",
+			files: []testFile{
+				{
+					path:    "subdir/file2.yaml",
+					content: "content2",
+				},
+			},
+		},
+		{
+			name: "multiple files in different directories",
+			files: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+				},
+				{
+					path:    "subdir/file2.yaml",
+					content: "content2",
+				},
+				{
+					path:    "subdir/nested/file3.yaml",
+					content: "content3",
+				},
+			},
+		},
+		{
+			name: "existing file with identical content",
+			files: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+					replace: false,
+				},
+			},
+			existing: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+				},
+			},
+		},
+		{
+			name: "existing file with different content",
+			files: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "new content",
+					replace: true,
+				},
+			},
+			existing: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "old content",
+				},
+			},
+		},
+		{
+			name: "mix of new and existing files",
+			files: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+					replace: false,
+				},
+				{
+					path:    "subdir/file2.yaml",
+					content: "new content2",
+					replace: true,
+				},
+			},
+			existing: []testFile{
+				{
+					path:    "file1.yaml",
+					content: "content1",
+				},
+				{
+					path:    "subdir/file2.yaml",
+					content: "old content2",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tmpDir, err := os.MkdirTemp("", "falcoctl-test-*")
+			assert.NoError(t, err)
+			defer os.RemoveAll(tmpDir)
+
+			dstDir, err := os.MkdirTemp("", "falcoctl-dst-*")
+			assert.NoError(t, err)
+			defer os.RemoveAll(dstDir)
+
+			// Setup existing files
+			for _, ef := range tt.existing {
+				dstPath := filepath.Join(dstDir, ef.path)
+				err = os.MkdirAll(filepath.Dir(dstPath), 0o755)
+				assert.NoError(t, err)
+				err = os.WriteFile(dstPath, []byte(ef.content), 0o644)
+				assert.NoError(t, err)
+			}
+
+			f, err := New("test-registry/test-ref", output.NewPrinter(pterm.LogLevelDebug, pterm.LogFormatterJSON, os.Stdout), &Config{
+				RulesfilesDir: dstDir,
+				TmpDir:        tmpDir,
+			})
+			assert.NoError(t, err)
+
+			var paths []string
+			for _, tf := range tt.files {
+				fullPath := filepath.Join(f.tmpDir, tf.path)
+				err = os.MkdirAll(filepath.Dir(fullPath), 0o755)
+				assert.NoError(t, err)
+				err = os.WriteFile(fullPath, []byte(tf.content), 0o644)
+				assert.NoError(t, err)
+				paths = append(paths, fullPath)
+			}
+
+			f.currentDigest = "test-digest"
+			err = f.moveFiles(paths, dstDir)
+			assert.NoError(t, err)
+
+			for _, tf := range tt.files {
+				dstPath := filepath.Join(dstDir, tf.path)
+				_, err = os.Stat(dstPath)
+				assert.NoError(t, err, "file should exist at %s", dstPath)
+
+				content, err := os.ReadFile(dstPath)
+				assert.NoError(t, err)
+				assert.Equal(t, tf.content, string(content), "file content should match at %s", dstPath)
+
+				// For files marked as replace=false, verify they have identical content with existing files
+				if !tf.replace {
+					for _, ef := range tt.existing {
+						if ef.path == tf.path {
+							assert.Equal(t, ef.content, string(content), "file content should not change when replace=false: %s", dstPath)
+						}
+					}
+				}
 			}
 		})
 	}

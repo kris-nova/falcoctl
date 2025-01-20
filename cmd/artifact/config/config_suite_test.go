@@ -47,6 +47,7 @@ var (
 	testPluginPlatform1      = "linux/amd64"
 	testPluginPlatform2      = "windows/amd64"
 	testPluginPlatform3      = "linux/arm64"
+	testPluginPlatform4      = "linux/loong64"
 	ctx                      = context.Background()
 	pluginMultiPlatformRef   string
 	rulesRef                 string
@@ -98,8 +99,8 @@ var _ = BeforeSuite(func() {
 	pusher := ocipusher.NewPusher(authn.NewClient(authn.WithCredentials(&auth.EmptyCredential)), true, nil)
 
 	// Push plugin artifact with multiple architectures.
-	filePathsAndPlatforms := ocipusher.WithFilepathsAndPlatforms([]string{testPluginTarball, testPluginTarball, testPluginTarball},
-		[]string{testPluginPlatform1, testPluginPlatform2, testPluginPlatform3})
+	filePathsAndPlatforms := ocipusher.WithFilepathsAndPlatforms([]string{testPluginTarball, testPluginTarball, testPluginTarball, testPluginTarball},
+		[]string{testPluginPlatform1, testPluginPlatform2, testPluginPlatform3, testPluginPlatform4})
 	pluginMultiPlatformRef = localRegistryHost + "/plugins:multiplatform"
 	artConfig := oci.ArtifactConfig{}
 	Expect(artConfig.ParseDependencies("my-dep:1.2.3|my-alt-dep:1.4.5")).ToNot(HaveOccurred())

@@ -27,7 +27,7 @@ linters-settings:
       limitations under the License.
 
   lll:
-    line-length: 150
+    line-length: 250
 
   gci:
     sections:

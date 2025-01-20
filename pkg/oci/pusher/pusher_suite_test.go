@@ -39,6 +39,7 @@ var (
 	testPluginPlatform1 = "linux/amd64"
 	testPluginPlatform2 = "windows/amd64"
 	testPluginPlatform3 = "linux/arm64"
+	testPluginPlatform4 = "linux/loong64"
 	ctx                 = context.Background()
 )
 

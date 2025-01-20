@@ -169,8 +169,8 @@ var _ = Describe("Pusher", func() {
 				Context("pushing multiple flavors of plugin: 3 filepath, 3 platform without tag", func() {
 					BeforeEach(func() {
 						// Different files, one for each platform.
-						filePathsAndPlatforms = ocipusher.WithFilepathsAndPlatforms([]string{testPluginTarball, testPluginTarball, testPluginTarball},
-							[]string{testPluginPlatform1, testPluginPlatform2, testPluginPlatform3})
+						filePathsAndPlatforms = ocipusher.WithFilepathsAndPlatforms([]string{testPluginTarball, testPluginTarball, testPluginTarball, testPluginTarball},
+							[]string{testPluginPlatform1, testPluginPlatform2, testPluginPlatform3, testPluginPlatform4})
 						options = []ocipusher.Option{filePathsAndPlatforms}
 						// Pushing the artifact without an explicit tag, the default tag (latest) will be added by the pusher.
 						repoAndTag = "/plugin-test-three-flavors"
@@ -189,10 +189,11 @@ var _ = Describe("Pusher", func() {
 						// Being the artifact of type plugin we expect that the retrieved descriptor is of type image index.
 						Expect(d.MediaType).To(Equal(v1.MediaTypeImageIndex))
 						Expect(d.Digest.String()).To(Equal(result.RootDigest))
-						Expect(index.Manifests).To(HaveLen(3))
+						Expect(index.Manifests).To(HaveLen(4))
 						Expect(fmt.Sprintf("%s/%s", index.Manifests[0].Platform.OS, index.Manifests[0].Platform.Architecture)).To(Equal(testPluginPlatform1))
 						Expect(fmt.Sprintf("%s/%s", index.Manifests[1].Platform.OS, index.Manifests[1].Platform.Architecture)).To(Equal(testPluginPlatform2))
 						Expect(fmt.Sprintf("%s/%s", index.Manifests[2].Platform.OS, index.Manifests[2].Platform.Architecture)).To(Equal(testPluginPlatform3))
+						Expect(fmt.Sprintf("%s/%s", index.Manifests[3].Platform.OS, index.Manifests[3].Platform.Architecture)).To(Equal(testPluginPlatform4))
 					})
 				})
 

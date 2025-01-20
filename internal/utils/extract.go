@@ -86,7 +86,6 @@ func ExtractTarGz(ctx context.Context, gzipStream io.Reader, destDir string, str
 			continue
 		}
 		info := header.FileInfo()
-		files = append(files, path)
 
 		switch header.Typeflag {
 		case tar.TypeDir:
@@ -106,6 +105,7 @@ func ExtractTarGz(ctx context.Context, gzipStream io.Reader, destDir string, str
 			if err = outFile.Close(); err != nil {
 				return nil, err
 			}
+			files = append(files, path)
 		case tar.TypeLink:
 			name := header.Linkname
 			if stripPathComponents > 0 {
